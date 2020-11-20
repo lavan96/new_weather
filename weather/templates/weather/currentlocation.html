@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title></title>
+  </head>
+  <body>
+    <div class="container">
+    <h1>Weather Website</h1>
+    <input type="text" id="location" placeholder="Enter city">
+<button id="searchbtn">Search</button>
+<br><br>
+<a href="{% url 'home' %}"><button class="btn-primary">City List</button></a>
+
+
+<img id="icon"/>
+
+<br>
+<div class="card my-3 py-3 px-3">
+<table class="table table-hover" id="weathertable">
+  <thead>
+    <tr class="bg-success">
+      <th scope="col">Date</th>
+      <th scope="col">Temperature</th>
+      <th scope="col">Weather</th>
+      <th scope="col">Icon</th>
+    </tr>
+  </thead>
+ 
+<tbody>
+   
+  </tbody>
+</table>
+ </div>
+<div class="card my-3 py-3 px-3" id="detailcard" hidden>
+<h2>About Weather</h2>
+<img id="detailImg" width="100px" height="100px"/>
+<p id="weather"></p>
+<p id="temp"></p>
+<p id="date"></p>
+<p id="humidity"></p>
+<p id="pressure"></p>
+<p id="sunrise"></p>
+<p id="sunset"></p>
+</div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+
+<script type="text/javascript">
+    $(function(){ //similar to document.ready == page fully loaded
+
+      if (navigator.geolocation){
+        navigator.geolocation.getCurrentPosition(function(position){
+
+          var lat = position.coords.latitude
+          var lon = position.coords.longitude
+          var url = "http://api.openweathermap.org/data/2.5/forecast/daily?lat="+lat+"&lon="+lon+"&cnt=10&appId=9fd7a449d055dba26a982a3220f32aa2"
+
+          $.getJSON(url,function(data,status){
+            processWeatherData(data)
+            var cityObj = data.city;
+            var displayCity = cityObj.name;
+            $("#location").val(displayCity);
+          })
+        })
+      }
+  $("#searchbtn").click(function(){
+    $("#weathertable").empty();
+    $("#detailcard").attr("hidden",true);
+        var url=("http://api.openweathermap.org/data/2.5/forecast/daily?q="+$("#location").val()+"&cnt=10&appId=9fd7a449d055dba26a982a3220f32aa2", function(data,status){
+           $.getJSON(url,function(data,status){
+            processWeatherData(data)
+          })
+
+          
+          
+
+          
+
+
+          
+
+
+
+          
+        })
+
+      })
+
+  function processWeatherData(data){
+    for(var i=0; i<data.list.length; i++){
+            var list = data.list[i];
+          var newDate = transformTime(list.dt);
+          
+ 
+
+          var temp = list.temp;
+          var temperature = (temp.day - 273.15).toFixed(2);
+          
+
+          var weatherObj = list.weather[0];
+          var weather = weatherObj.main;
+          
+
+          var iconData = weatherObj.icon;
+          var url = "https://openweathermap.org/img/wn/"+iconData+"@2x.png"
+          var newImg = $("<img>")
+          newImg.attr("src",url);
+
+          var humidityObj = list.humidity;
+          
+
+          var pressureObj = list.pressure;
+         
+
+          var sunriseTime = transformTime(list.sunrise);
+          
+          
+
+          var sunsetTime = transformTime(list.sunset);
+
+
+
+
+
+          var newtd1 = $("<td>").html(newDate);
+          var newtd2 = $("<td>").html(temperature +" C");
+          var newtd3 = $("<td>").html(weather);
+          var newtd4 = $("<td>").html(newImg);
+          var newtr1 = $("<tr>");
+
+          newtr1.append(newtd1);
+          newtr1.append(newtd2);
+          newtr1.append(newtd3);
+          newtr1.append(newtd4);
+
+          
+          
+
+          newtr1.click({list:list},function(event){
+            $("#detailcard").removeAttr("hidden");
+      var currentWeather = event.data.list
+
+       var iconData = currentWeather.weather[0].icon;
+          var url = "https://openweathermap.org/img/wn/"+iconData+"@2x.png"
+          $("#detailImg").attr("src",url);
+
+
+            var humidityObj = list.humidity;
+             $("#humidity").html(humidityObj);
+           
+            $("#date").html("Date: " + transformTime(currentWeather.dt));
+            $("#temp").html("Temperature: " + (currentWeather.temp.day - 273.15).toFixed(2) +" C");
+            $("#weather").html("Weather: " + currentWeather.weather[0].main);
+            $("#humidity").html("Humidity: "+ currentWeather.humidity);
+             $("#pressure").html("Pressure: "+ currentWeather.pressure);
+             $("#sunrise").html("Sunrise Time: "+ transformTime(currentWeather.sunrise));
+             $("#sunset").html("Sunset Time: "+ transformTime(currentWeather.sunset));
+
+
+            })
+
+          $("#weathertable").append(newtr1);
+
+            
+
+            
+          
+
+
+
+          }
+  }
+
+ function transformTime(timeToTransform){
+  console.log("clicked")
+            var c = new Date(timeToTransform*1000);
+          var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var year = c.getFullYear();
+  var month = months[c.getMonth()];
+  var date = c.getDate();
+  var hour = c.getHours();
+  var min = c.getMinutes();
+  var sec = c.getSeconds();
+  var result = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+  console.log(result)
+        return result  
+
+ }   
+
+})
+
+
+</script>
+
+  </body>
+  </div>
+</html>
